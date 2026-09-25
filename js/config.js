@@ -7,6 +7,6 @@
    ============================================================ */
 window.FOXURRENT_CONFIG = {
   // Leave empty for local-only demo. Fill for shared online data:
-  supabaseUrl: '',   // e.g. 'https://xxxx.supabase.co'
-  supabaseAnonKey: '' // e.g. 'eyJhbGciOi...'
+  supabaseUrl: '',   https://snprzjeglmwwpngbiwbf.supabase.co'
+  supabaseAnonKey: '' sb_publishable_PnPw_394xm-i5WOMIY1G9g_Pb33bC3d'
 };
