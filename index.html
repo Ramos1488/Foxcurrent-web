@@ -30,6 +30,7 @@
         <a href="#about" class="nav-link" data-nav="about" data-i18n="nav.about">About</a>
       </nav>
       <div class="header-actions">
+        <span class="online-badge" id="onlineBadge" title="Data mode"></span>
         <button class="lang-btn" id="langToggle" title="Switch language">
           <span id="langLabel">EN</span>
         </button>
@@ -242,6 +243,9 @@
 
   <div class="toast" id="toast"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/db.js"></script>
   <script src="js/i18n.js"></script>
   <script src="js/app.js"></script>
 </body>

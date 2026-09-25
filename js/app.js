@@ -171,10 +171,45 @@ async function fetchRobloxGame(placeId) {
 }
 
 /* ===== STATE ===== */
-let projects = load(KEYS.projects);
-let blogPosts = load(KEYS.blog);
-let newsItems = load(KEYS.news);
-let teamMembers = load(KEYS.team);
+let projects = [];
+let blogPosts = [];
+let newsItems = [];
+let teamMembers = [];
+let dataOnline = false;
+
+function updateOnlineBadge() {
+  const el = document.getElementById('onlineBadge');
+  if (!el) return;
+  if (dataOnline) {
+    el.textContent = 'Online';
+    el.className = 'online-badge online';
+  } else {
+    el.textContent = 'Local';
+    el.className = 'online-badge local';
+  }
+}
+
+async function persist(key, data) {
+  try {
+    const res = await window.FoxurrentDB.dbSave(key, data);
+    if (res && res.online) dataOnline = true;
+    updateOnlineBadge();
+  } catch (e) {
+    toast(t('toast.storageFull'), 'error');
+    throw e;
+  }
+}
+
+async function initData() {
+  const all = await window.FoxurrentDB.dbLoadAll();
+  projects = all.projects || [];
+  blogPosts = all.blog || [];
+  newsItems = all.news || [];
+  teamMembers = all.team || [];
+  dataOnline = !!all.online;
+  updateOnlineBadge();
+  renderAll();
+}
 
 /* ===== RENDER PROJECTS ===== */
 function statusLabel(s) {
@@ -429,7 +464,7 @@ async function addGame() {
       ...data
     };
     projects.unshift(project);
-    save(KEYS.projects, projects);
+    await persist('projects', projects);
     input.value = '';
     renderAll();
     toast(t('toast.added'));
@@ -478,9 +513,9 @@ function openEditStatus(id) {
   `);
 
   document.getElementById('modalCancel').onclick = closeModal;
-  document.getElementById('modalSaveStatus').onclick = () => {
+  document.getElementById('modalSaveStatus').onclick = async () => {
     p.status = document.getElementById('editStatusSelect').value;
-    save(KEYS.projects, projects);
+    await persist('projects', projects);
     closeModal();
     renderAll();
     toast(t('toast.updated'));
@@ -518,7 +553,7 @@ function openBlogModal(id = null) {
     };
   }
   bindImagePicker('blogImage', 'blogImagePreview', imgState);
-  document.getElementById('modalSaveBlog').onclick = () => {
+  document.getElementById('modalSaveBlog').onclick = async () => {
     const title = document.getElementById('blogTitle').value.trim();
     const content = document.getElementById('blogContent').value.trim();
     if (!title) return;
@@ -536,9 +571,8 @@ function openBlogModal(id = null) {
       });
     }
     try {
-      save(KEYS.blog, blogPosts);
+      await persist('blog', blogPosts);
     } catch (e) {
-      toast(t('toast.storageFull'), 'error');
       return;
     }
     closeModal();
@@ -577,7 +611,7 @@ function openNewsModal(id = null) {
     };
   }
   bindImagePicker('newsImage', 'newsImagePreview', imgState);
-  document.getElementById('modalSaveNews').onclick = () => {
+  document.getElementById('modalSaveNews').onclick = async () => {
     const title = document.getElementById('newsTitle').value.trim();
     const content = document.getElementById('newsContent').value.trim();
     if (!title) return;
@@ -595,9 +629,8 @@ function openNewsModal(id = null) {
       });
     }
     try {
-      save(KEYS.news, newsItems);
+      await persist('news', newsItems);
     } catch (e) {
-      toast(t('toast.storageFull'), 'error');
       return;
     }
     closeModal();
@@ -689,7 +722,7 @@ function openTeamModal(id = null) {
     };
   }
   bindImagePicker('teamImage', 'teamImagePreview', imgState);
-  document.getElementById('modalSaveTeam').onclick = () => {
+  document.getElementById('modalSaveTeam').onclick = async () => {
     const name = document.getElementById('teamName').value.trim();
     if (!name) return;
     const role = document.getElementById('teamRole').value.trim();
@@ -713,9 +746,8 @@ function openTeamModal(id = null) {
       });
     }
     try {
-      save(KEYS.team, teamMembers);
+      await persist('team', teamMembers);
     } catch (e) {
-      toast(t('toast.storageFull'), 'error');
       return;
     }
     closeModal();
@@ -740,7 +772,7 @@ document.addEventListener('click', e => {
   if (action === 'delete-project') {
     if (confirm(currentLang === 'ru' ? 'Удалить игру?' : 'Delete this game?')) {
       projects = projects.filter(p => p.id !== id);
-      save(KEYS.projects, projects);
+      persist('projects', projects);
       renderAll();
       toast(t('toast.deleted'));
     }
@@ -749,7 +781,7 @@ document.addEventListener('click', e => {
   if (action === 'delete-blog') {
     if (confirm(currentLang === 'ru' ? 'Удалить пост?' : 'Delete this post?')) {
       blogPosts = blogPosts.filter(p => p.id !== id);
-      save(KEYS.blog, blogPosts);
+      persist('blog', blogPosts);
       renderAll();
       toast(t('toast.deleted'));
     }
@@ -758,7 +790,7 @@ document.addEventListener('click', e => {
   if (action === 'delete-news') {
     if (confirm(currentLang === 'ru' ? 'Удалить новость?' : 'Delete this news?')) {
       newsItems = newsItems.filter(n => n.id !== id);
-      save(KEYS.news, newsItems);
+      persist('news', newsItems);
       renderAll();
       toast(t('toast.deleted'));
     }
@@ -767,7 +799,7 @@ document.addEventListener('click', e => {
   if (action === 'delete-team') {
     if (confirm(currentLang === 'ru' ? 'Удалить участника?' : 'Remove this contributor?')) {
       teamMembers = teamMembers.filter(m => m.id !== id);
-      save(KEYS.team, teamMembers);
+      persist('team', teamMembers);
       renderAll();
       toast(t('toast.deleted'));
     }
@@ -914,4 +946,5 @@ function initCookieBanner() {
 isAdmin = checkAdminSession();
 setLanguage(currentLang);
 updateAdminUI();
+initData();
 initCookieBanner();

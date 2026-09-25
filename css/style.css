@@ -754,3 +754,23 @@ img { max-width: 100%; display: block; }
   .cookie-actions { width: 100%; }
   .cookie-actions .btn { flex: 1; }
 }
+
+.online-badge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+.online-badge.online {
+  color: var(--green);
+  border-color: rgba(61, 214, 140, 0.35);
+  background: rgba(61, 214, 140, 0.08);
+}
+.online-badge.local {
+  color: var(--yellow);
+  border-color: rgba(232, 179, 57, 0.35);
+}
