@@ -6,7 +6,6 @@
    4. Paste below and redeploy on Vercel
    ============================================================ */
 window.FOXURRENT_CONFIG = {
-  // Leave empty for local-only demo. Fill for shared online data:
-  supabaseUrl: '',   https://snprzjeglmwwpngbiwbf.supabase.co'
-  supabaseAnonKey: '' sb_publishable_PnPw_394xm-i5WOMIY1G9g_Pb33bC3d'
+  supabaseUrl: 'https://snprzjeglmwwpngbiwbf.supabase.co',
+  supabaseAnonKey: 'sb_publishable_PnPw_394xm-i5WOMIY1G9g_Pb33bC3d'
 };
