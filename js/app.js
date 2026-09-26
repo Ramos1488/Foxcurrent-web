@@ -276,15 +276,48 @@ function linkify(text) {
 }
 
 const SOCIAL_KEYS = [
-  { key: 'roblox', label: 'Roblox' },
-  { key: 'telegram', label: 'Telegram' },
-  { key: 'tiktok', label: 'TikTok' },
-  { key: 'instagram', label: 'Instagram' },
-  { key: 'x', label: 'X' },
-  { key: 'youtube', label: 'YouTube' },
-  { key: 'discord', label: 'Discord' },
-  { key: 'github', label: 'GitHub' }
+  { key: 'youtube', label: 'YouTube', icon: 'yt' },
+  { key: 'roblox', label: 'Roblox', icon: 'rb' },
+  { key: 'tiktok', label: 'TikTok', icon: 'tt' },
+  { key: 'x', label: 'X', icon: 'x' },
+  { key: 'instagram', label: 'Instagram', icon: 'ig' },
+  { key: 'telegram', label: 'Telegram', icon: 'tg' },
+  { key: 'discord', label: 'Discord', icon: 'dc' },
+  { key: 'github', label: 'GitHub', icon: 'gh' }
 ];
+
+const SOCIAL_SVG = {
+  yt: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31.5 31.5 0 0 0 0 12a31.5 31.5 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31.5 31.5 0 0 0 24 12a31.5 31.5 0 0 0-.5-5.8zM9.6 15.6V8.4L15.8 12l-6.2 3.6z"/></svg>',
+  rb: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 5.1 12 2 5.1 5.1 2 12l3.1 6.9L12 22l6.9-3.1L22 12l-3.1-6.9zM12 16.5A4.5 4.5 0 1 1 12 7.5a4.5 4.5 0 0 1 0 9z"/></svg>',
+  tt: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.6 6.8A5 5 0 0 1 16 5.2V15a5 5 0 1 1-5-5v2.2a2.8 2.8 0 1 0 2.8 2.8V2h2.5a5 5 0 0 0 3.3 3.4v1.4z"/></svg>',
+  x: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.2 2H21l-6.6 7.5L22 22h-6.2l-4.9-6.4L5.3 22H2.5l7-8L2 2h6.3l4.4 5.8L18.2 2zm-1.1 18h1.7L7 3.9H5.2L17.1 20z"/></svg>',
+  ig: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm0 2a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7zm11 1.5a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4zM12 7.5A4.5 4.5 0 1 1 12 16.5 4.5 4.5 0 0 1 12 7.5zm0 2a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/></svg>',
+  tg: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.5 15.3 9.3 19c.4 0 .6-.2.8-.4l1.9-1.8 3.9 2.9c.7.4 1.2.2 1.4-.7L20.9 5c.3-1.2-.4-1.7-1.2-1.4L3.4 9.4c-1.1.4-1.1 1.1-.2 1.4l4.1 1.3 9.6-6c.4-.3.9-.1.5.2L9.5 15.3z"/></svg>',
+  dc: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4.5A16 16 0 0 0 15.6 3l-.3.6a14 14 0 0 1 3.6 1.8 12.5 12.5 0 0 0-12 0A14 14 0 0 1 9.7 3.6 16 16 0 0 0 4 4.5C1.5 8.6.9 12.6 1.2 16.5A16 16 0 0 0 6.2 19l.7-1.1a10.5 10.5 0 0 1-1.7-.8l.4-.3a11.8 11.8 0 0 0 13.8 0l.4.3a10.5 10.5 0 0 1-1.7.8l.7 1.1a16 16 0 0 0 5-2.5c.4-4.4-.7-8.3-2.8-12zM8.7 14.5c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2zm6.6 0c-1 0-1.8-.9-1.8-2s.8-2 1.8-2 1.8.9 1.8 2-.8 2-1.8 2z"/></svg>',
+  gh: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-3.2 19.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.3-3.4-1.3-.5-1.1-1.1-1.4-1.1-1.4-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.6.3-1.1.6-1.3-2.2-.3-4.6-1.1-4.6-5a3.9 3.9 0 0 1 1-2.7 3.6 3.6 0 0 1 .1-2.6s.8-.3 2.7 1a9.3 9.3 0 0 1 5 0c1.9-1.3 2.7-1 2.7-1a3.6 3.6 0 0 1 .1 2.6 3.9 3.9 0 0 1 1 2.7c0 3.9-2.3 4.7-4.6 5 .4.3.7.9.7 1.8v2.7c0 .3.2.6.7.5A10 10 0 0 0 12 2z"/></svg>'
+};
+
+/* Map role text → department section */
+const DEPT_RULES = [
+  { id: 'leadership', match: /founder|lead|director|owner|ceo|head|руководитель|основатель|лид/i, en: 'Leadership', ru: 'Руководство' },
+  { id: 'developers', match: /develop|scripter|programmer|coder|инженер|разработ|скрипт|программ/i, en: 'Developers', ru: 'Разработчики' },
+  { id: 'designers', match: /design|artist|ui|ux|builder|3d|модел|художник|дизайн|билдер/i, en: 'Designers', ru: 'Дизайнеры' },
+  { id: 'community', match: /community|moderator|manager|marketing|qa|support|модератор|менеджер|маркетинг/i, en: 'Community', ru: 'Комьюнити' }
+];
+
+function getDepartment(role) {
+  const r = role || '';
+  for (const d of DEPT_RULES) {
+    if (d.match.test(r)) return d;
+  }
+  return { id: 'team', match: null, en: 'Team', ru: 'Команда' };
+}
+
+function socialIconHtml(s) {
+  const svg = SOCIAL_SVG[s.icon] || '';
+  return svg;
+}
+
 
 /* ===== IMAGE UPLOAD (base64, resized) ===== */
 const MAX_IMG_SIDE = 1200;
@@ -652,34 +685,59 @@ function renderTeam() {
   }
   if (empty) empty.style.display = 'none';
 
-  teamMembers.forEach((m, i) => {
-    const card = document.createElement('article');
-    card.className = 'team-card';
-    card.style.animationDelay = (i * 0.05) + 's';
-    const initial = (m.name || '?').charAt(0).toUpperCase();
-    const av = m.avatar
-      ? `<img class="team-avatar" src="${m.avatar}" alt="">`
-      : `<div class="team-avatar-placeholder">${escapeHtml(initial)}</div>`;
-    const links = SOCIAL_KEYS
-      .filter(s => m.links && m.links[s.key])
-      .map(s => `<a class="team-link" href="${escapeHtml(m.links[s.key])}" target="_blank" rel="noopener">${s.label}</a>`)
-      .join('');
-    card.innerHTML = `
-      <div class="team-top">
-        ${av}
-        <div>
-          <div class="team-name">${escapeHtml(m.name)}</div>
-          <div class="team-role">${escapeHtml(m.role || '')}</div>
+  // Group by department
+  const groups = {};
+  const order = [];
+  teamMembers.forEach(m => {
+    const dept = getDepartment(m.role);
+    if (!groups[dept.id]) {
+      groups[dept.id] = { dept, members: [] };
+      order.push(dept.id);
+    }
+    groups[dept.id].members.push(m);
+  });
+
+  let cardIndex = 0;
+  order.forEach(deptId => {
+    const { dept, members } = groups[deptId];
+    const section = document.createElement('div');
+    section.className = 'team-dept';
+    const title = currentLang === 'ru' ? dept.ru : dept.en;
+    section.innerHTML = `<h3 class="team-dept-title">${escapeHtml(title)}</h3>`;
+    const row = document.createElement('div');
+    row.className = 'team-grid';
+
+    members.forEach(m => {
+      const card = document.createElement('article');
+      card.className = 'team-card';
+      card.style.animationDelay = (cardIndex++ * 0.05) + 's';
+      const initial = (m.name || '?').charAt(0).toUpperCase();
+      const av = m.avatar
+        ? `<img class="team-avatar" src="${m.avatar}" alt="">`
+        : `<div class="team-avatar-placeholder">${escapeHtml(initial)}</div>`;
+      const links = SOCIAL_KEYS
+        .filter(s => m.links && m.links[s.key])
+        .map(s => `<a class="team-social" href="${escapeHtml(m.links[s.key])}" target="_blank" rel="noopener" title="${s.label}">${socialIconHtml(s)}</a>`)
+        .join('');
+      const bio = m.bio ? `<p class="team-bio">${escapeHtml(m.bio)}</p>` : '';
+      card.innerHTML = `
+        <div class="team-card-inner">
+          ${av}
+          <h4 class="team-name">${escapeHtml(m.name)}</h4>
+          <p class="team-role">${escapeHtml(m.role || '')}</p>
+          ${bio}
+          ${links ? `<div class="team-socials">${links}</div>` : ''}
+          ${isAdmin ? `
+          <div class="blog-actions-row team-admin-actions">
+            <button class="btn btn-ghost btn-sm" data-action="edit-team" data-id="${m.id}">${t('btn.edit')}</button>
+            <button class="btn btn-danger btn-sm" data-action="delete-team" data-id="${m.id}">${t('btn.delete')}</button>
+          </div>` : ''}
         </div>
-      </div>
-      ${links ? `<div class="team-links">${links}</div>` : ''}
-      ${isAdmin ? `
-      <div class="blog-actions-row">
-        <button class="btn btn-ghost btn-sm" data-action="edit-team" data-id="${m.id}">${t('btn.edit')}</button>
-        <button class="btn btn-danger btn-sm" data-action="delete-team" data-id="${m.id}">${t('btn.delete')}</button>
-      </div>` : ''}
-    `;
-    grid.appendChild(card);
+      `;
+      row.appendChild(card);
+    });
+    section.appendChild(row);
+    grid.appendChild(section);
   });
 }
 
@@ -702,7 +760,9 @@ function openTeamModal(id = null) {
     <label>${t('team.name')}</label>
     <input type="text" id="teamName" value="${member ? escapeHtml(member.name) : ''}">
     <label>${t('team.role')}</label>
-    <input type="text" id="teamRole" value="${member ? escapeHtml(member.role || '') : ''}" placeholder="Developer, Designer...">
+    <input type="text" id="teamRole" value="${member ? escapeHtml(member.role || '') : ''}" placeholder="e.g. Founder & Lead Game Designer">
+    <label>${t('team.bio')}</label>
+    <textarea id="teamBio" placeholder="${t('team.bioHint')}">${member ? escapeHtml(member.bio || '') : ''}</textarea>
     <label>${t('modal.image')}</label>
     <input type="file" id="teamImage" accept="image/*">
     <div class="image-preview" id="teamImagePreview">${previewHtml}</div>
@@ -726,6 +786,7 @@ function openTeamModal(id = null) {
     const name = document.getElementById('teamName').value.trim();
     if (!name) return;
     const role = document.getElementById('teamRole').value.trim();
+    const bio = document.getElementById('teamBio').value.trim();
     const newLinks = {};
     SOCIAL_KEYS.forEach(s => {
       const v = document.getElementById('link_' + s.key).value.trim();
@@ -734,6 +795,7 @@ function openTeamModal(id = null) {
     if (member) {
       member.name = name;
       member.role = role;
+      member.bio = bio;
       member.avatar = imgState.image || null;
       member.links = newLinks;
     } else {
@@ -741,6 +803,7 @@ function openTeamModal(id = null) {
         id: uid(),
         name,
         role,
+        bio,
         avatar: imgState.image || null,
         links: newLinks
       });

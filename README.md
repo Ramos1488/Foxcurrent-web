@@ -47,3 +47,14 @@ vercel.json
 
 - Без заполненного `config.js` сайт работает, но данные **локальные** (у каждого свои).  
 - Политики RLS сейчас открыты на чтение/запись (как и клиентская админка). Для продакшена позже можно закрыть write и вынести API.
+
+
+## Discord webhook (GitHub → Discord)
+
+1. Discord: Channel settings → Integrations → Webhooks → New → Copy URL  
+2. GitHub repo → **Settings → Secrets and variables → Actions → New repository secret**  
+   - Name: `DISCORD_WEBHOOK`  
+   - Value: webhook URL  
+3. Push to `main` / `master` — bot posts commits to Discord  
+
+Workflow file: `.github/workflows/discord-commits.yml`
