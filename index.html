@@ -227,6 +227,42 @@
     </div>
   </div>
 
+
+  <!-- Maintenance -->
+  <div class="maintenance-overlay" id="maintenanceOverlay" style="display:none;">
+    <div class="maintenance-card glass">
+      <div class="maintenance-icon">⚙</div>
+      <h2 data-i18n="maint.title">Under maintenance</h2>
+      <p id="maintenanceMsg" data-i18n="maint.desc">We'll be back soon. Technical works in progress.</p>
+      <div class="maintenance-actions">
+        <button type="button" class="btn btn-ghost btn-sm" id="maintLoginBtn" data-i18n="admin.login">Admin</button>
+        <button type="button" class="btn btn-primary btn-sm" id="maintAdminBypass" style="display:none;" data-i18n="maint.bypass">Continue as admin</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live chat -->
+  <div class="chat-widget" id="chatWidget">
+    <button type="button" class="chat-toggle" id="chatToggle" aria-label="Chat">
+      <span class="chat-toggle-icon">💬</span>
+      <span class="chat-toggle-label" data-i18n="chat.title">Chat</span>
+    </button>
+    <div class="chat-panel glass" id="chatPanel" hidden>
+      <div class="chat-header">
+        <strong data-i18n="chat.title">Live chat</strong>
+        <button type="button" class="chat-close" id="chatClose">×</button>
+      </div>
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-form">
+        <input type="text" id="chatName" maxlength="24" data-i18n-placeholder="chat.name" placeholder="Name">
+        <div class="chat-row">
+          <input type="text" id="chatInput" maxlength="300" data-i18n-placeholder="chat.placeholder" placeholder="Message…">
+          <button type="button" class="btn btn-primary btn-sm" id="chatSend" data-i18n="chat.send">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="cookie-banner glass" id="cookieBanner" role="dialog" aria-label="Cookie consent">
     <div class="cookie-inner">
       <div class="cookie-text">

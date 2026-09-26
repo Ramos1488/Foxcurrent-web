@@ -1,60 +1,54 @@
-# Foxurrent. — сайт на Vercel (общий онлайн-контент)
+# Foxurrent.
 
-Чтобы **все посетители** видели проекты, блог, новости и команду, нужен бесплатный Supabase.
+Public site for the **Foxurrent.** Roblox studio — projects, dev blog, news, contributors, live chat.
 
-## 1. Supabase (5 минут)
+**Stack:** static HTML / CSS / JS · [Vercel](https://vercel.com) · [Supabase](https://supabase.com) (shared data)
 
-1. Зайди на [supabase.com](https://supabase.com) → New project  
-2. **SQL Editor** → New query → вставь весь файл `supabase-schema.sql` → Run  
-3. **Project Settings → API**:
-   - Project URL  
-   - `anon` `public` key  
-4. Открой `js/config.js` и вставь:
+## Features
 
-```js
-window.FOXURRENT_CONFIG = {
-  supabaseUrl: 'https://ТВОЙ_ПРОЕКТ.supabase.co',
-  supabaseAnonKey: 'eyJ...'
-};
-```
+- Projects with live Roblox metadata
+- Dev Blog & Game News (images, clickable links)
+- Contributors by department (Leadership, Developers, Designers, …)
+- Live chat (shared via Supabase)
+- Maintenance mode (admin toggle)
+- EN / RU
+- Discord notifications on GitHub push
 
-## 2. Деплой на Vercel
+## Deploy
 
-1. Залей папку на GitHub  
-2. [vercel.com](https://vercel.com) → Import project  
-3. Framework Preset: **Other**  
-4. Deploy  
+1. Fork or clone this repo  
+2. Create a free [Supabase](https://supabase.com) project  
+3. **SQL Editor** → run `supabase-schema.sql`  
+4. Put your Project URL + `anon` key into `js/config.js`  
+5. Import the repo on [Vercel](https://vercel.com) → Framework: **Other** → Deploy  
 
-Бейдж в шапке: **Online** = данные из Supabase, **Local** = только этот браузер.
+In the header, badge **Online** means data is loaded from Supabase.
 
-## 3. Админ
+## Discord webhook (commits → Discord)
 
-Кнопка Admin → пароль (тот, что ты задал хешем в `js/app.js`).  
-После входа добавляй игры / посты / команду — они сохраняются в облако и видны всем.
+1. Discord channel → **Integrations → Webhooks → New Webhook** → Copy URL  
+2. GitHub repo → **Settings → Secrets and variables → Actions**  
+3. **New repository secret**  
+   - Name: `DISCORD_WEBHOOK` (exactly this name)  
+   - Value: the webhook URL (`https://discord.com/api/webhooks/...`)  
+4. Push to `main` or `master`, or run the workflow manually under **Actions**  
 
-## Структура
+### If webhook “does nothing”
 
-```
-index.html
-js/config.js      ← URL и ключ Supabase
-js/db.js          ← онлайн / local fallback
-js/app.js
-supabase-schema.sql
-vercel.json
-```
+| Check | What to do |
+|--------|------------|
+| Secret name | Must be `DISCORD_WEBHOOK` |
+| Secret value | Full URL, no quotes/spaces |
+| Workflow file | Must be on default branch: `.github/workflows/discord-commits.yml` |
+| Actions enabled | Repo **Settings → Actions → Allow** |
+| Workflow run | **Actions** tab → open run → read logs |
+| Channel | Webhook must still exist (not deleted) |
 
-## Важно
+## Admin
 
-- Без заполненного `config.js` сайт работает, но данные **локальные** (у каждого свои).  
-- Политики RLS сейчас открыты на чтение/запись (как и клиентская админка). Для продакшена позже можно закрыть write и вынести API.
+Use the **Admin** button on the site (password is set via SHA-256 hash in `js/app.js`).  
+After login you can manage content, toggle maintenance, and moderate chat.
 
+## License
 
-## Discord webhook (GitHub → Discord)
-
-1. Discord: Channel settings → Integrations → Webhooks → New → Copy URL  
-2. GitHub repo → **Settings → Secrets and variables → Actions → New repository secret**  
-   - Name: `DISCORD_WEBHOOK`  
-   - Value: webhook URL  
-3. Push to `main` / `master` — bot posts commits to Discord  
-
-Workflow file: `.github/workflows/discord-commits.yml`
+Content © Foxurrent. Site code provided as-is for the studio deployment.

@@ -1,4 +1,4 @@
--- Run this once in Supabase → SQL Editor
+-- Run in Supabase → SQL Editor (safe to re-run)
 
 create table if not exists foxurrent_store (
   key text primary key,
@@ -6,8 +6,6 @@ create table if not exists foxurrent_store (
   updated_at timestamptz not null default now()
 );
 
--- Public read + write (matches client-side admin UI).
--- For stronger security later, lock writes and use a server API.
 alter table foxurrent_store enable row level security;
 
 drop policy if exists "public read" on foxurrent_store;
@@ -24,5 +22,7 @@ insert into foxurrent_store (key, value) values
   ('projects', '[]'::jsonb),
   ('blog', '[]'::jsonb),
   ('news', '[]'::jsonb),
-  ('team', '[]'::jsonb)
+  ('team', '[]'::jsonb),
+  ('chat', '[]'::jsonb),
+  ('settings', '{"maintenance": false, "maintenanceMessage": ""}'::jsonb)
 on conflict (key) do nothing;

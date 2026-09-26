@@ -56,11 +56,15 @@ function updateAdminUI() {
     el.style.display = isAdmin ? '' : 'none';
   });
 
+  updateMaintButton();
+  applyMaintenance();
+
   renderProjects();
   renderBlog();
   renderNews();
   renderTeam();
   renderHero();
+  renderChat();
 }
 
 /* ===== HELPERS ===== */
@@ -175,7 +179,11 @@ let projects = [];
 let blogPosts = [];
 let newsItems = [];
 let teamMembers = [];
+let chatMessages = [];
+let siteSettings = { maintenance: false, maintenanceMessage: '' };
 let dataOnline = false;
+let chatPollTimer = null;
+let maintBypass = false;
 
 function updateOnlineBadge() {
   const el = document.getElementById('onlineBadge');
@@ -206,9 +214,16 @@ async function initData() {
   blogPosts = all.blog || [];
   newsItems = all.news || [];
   teamMembers = all.team || [];
+  chatMessages = Array.isArray(all.chat) ? all.chat : [];
+  siteSettings = all.settings && typeof all.settings === 'object'
+    ? all.settings
+    : { maintenance: false, maintenanceMessage: '' };
   dataOnline = !!all.online;
   updateOnlineBadge();
   renderAll();
+  renderChat();
+  applyMaintenance();
+  startChatPolling();
 }
 
 /* ===== RENDER PROJECTS ===== */
@@ -919,6 +934,7 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
   if (hash === ADMIN_HASH) {
     setAdminSession(true);
     closeLoginModal();
+    applyMaintenance();
     toast(t('admin.welcome'));
   } else {
     document.getElementById('loginError').style.display = 'block';
@@ -965,6 +981,173 @@ if (addTeamBtn) {
 document.getElementById('langToggle').addEventListener('click', toggleLanguage);
 
 
+
+/* ===== MAINTENANCE ===== */
+function applyMaintenance() {
+  const on = !!(siteSettings && siteSettings.maintenance);
+  const overlay = document.getElementById('maintenanceOverlay');
+  const msg = document.getElementById('maintenanceMsg');
+  const bypass = document.getElementById('maintAdminBypass');
+  const loginBtn = document.getElementById('maintLoginBtn');
+  if (msg) {
+    msg.textContent = (siteSettings && siteSettings.maintenanceMessage)
+      ? siteSettings.maintenanceMessage
+      : t('maint.desc');
+  }
+  document.body.classList.toggle('maintenance-on', on && !maintBypass);
+  if (!overlay) return;
+  if (on && !maintBypass) {
+    overlay.style.display = 'flex';
+    if (bypass) bypass.style.display = isAdmin ? '' : 'none';
+    if (loginBtn) loginBtn.style.display = isAdmin ? 'none' : '';
+  } else {
+    overlay.style.display = 'none';
+  }
+}
+
+function updateMaintButton() {
+  let btn = document.getElementById('maintToggleBtn');
+  const actions = document.querySelector('.header-actions');
+  if (!actions) return;
+  if (!btn) {
+    btn = document.createElement('button');
+    btn.id = 'maintToggleBtn';
+    btn.className = 'admin-btn admin-only admin-maint-btn';
+    btn.style.display = isAdmin ? '' : 'none';
+    actions.insertBefore(btn, document.getElementById('adminBtn'));
+    btn.addEventListener('click', toggleMaintenance);
+  }
+  btn.style.display = isAdmin ? '' : 'none';
+  btn.textContent = siteSettings.maintenance ? t('maint.off') : t('maint.on');
+}
+
+async function toggleMaintenance() {
+  if (!isAdmin) return;
+  const turningOn = !siteSettings.maintenance;
+  let message = siteSettings.maintenanceMessage || '';
+  if (turningOn) {
+    const custom = prompt(t('maint.desc'), message || (currentLang === 'ru' ? 'Идут технические работы. Скоро вернёмся.' : "We'll be back soon."));
+    if (custom === null) return;
+    message = custom;
+  }
+  siteSettings = {
+    maintenance: turningOn,
+    maintenanceMessage: message
+  };
+  try {
+    await persist('settings', siteSettings);
+  } catch (e) {
+    return;
+  }
+  maintBypass = false;
+  applyMaintenance();
+  updateMaintButton();
+  toast(turningOn ? t('maint.enabled') : t('maint.disabled'));
+}
+
+/* ===== LIVE CHAT ===== */
+function renderChat() {
+  const box = document.getElementById('chatMessages');
+  if (!box) return;
+  const list = Array.isArray(chatMessages) ? chatMessages.slice(-100) : [];
+  if (list.length === 0) {
+    box.innerHTML = `<div class="chat-empty">${t('chat.empty')}</div>`;
+    return;
+  }
+  box.innerHTML = list.map(m => {
+    const time = m.ts ? new Date(m.ts).toLocaleTimeString(currentLang === 'ru' ? 'ru-RU' : 'en-US', { hour: '2-digit', minute: '2-digit' }) : '';
+    return `<div class="chat-msg">
+      <div class="chat-msg-meta"><span>${escapeHtml(m.name || 'Anon')}</span><span>${time}</span></div>
+      <div class="chat-msg-text">${linkify(m.text || '')}</div>
+    </div>`;
+  }).join('');
+  box.scrollTop = box.scrollHeight;
+}
+
+async function refreshChat() {
+  try {
+    const data = await window.FoxurrentDB.dbLoad('chat', []);
+    chatMessages = Array.isArray(data) ? data : [];
+    renderChat();
+  } catch (_) {}
+}
+
+function startChatPolling() {
+  if (chatPollTimer) clearInterval(chatPollTimer);
+  chatPollTimer = setInterval(refreshChat, 5000);
+}
+
+async function sendChatMessage() {
+  const nameEl = document.getElementById('chatName');
+  const input = document.getElementById('chatInput');
+  const name = (nameEl.value || '').trim() || localStorage.getItem('rr_chat_name') || '';
+  const text = (input.value || '').trim();
+  if (!name) {
+    toast(t('chat.needName'), 'error');
+    nameEl.focus();
+    return;
+  }
+  if (!text) return;
+  localStorage.setItem('rr_chat_name', name);
+  nameEl.value = name;
+
+  // reload latest to avoid overwriting
+  try {
+    const latest = await window.FoxurrentDB.dbLoad('chat', []);
+    chatMessages = Array.isArray(latest) ? latest : [];
+  } catch (_) {}
+
+  chatMessages.push({
+    id: uid(),
+    name: name.slice(0, 24),
+    text: text.slice(0, 300),
+    ts: new Date().toISOString()
+  });
+  // keep last 150
+  if (chatMessages.length > 150) chatMessages = chatMessages.slice(-150);
+
+  try {
+    await persist('chat', chatMessages);
+  } catch (e) {
+    return;
+  }
+  input.value = '';
+  renderChat();
+}
+
+function initChatUI() {
+  const toggle = document.getElementById('chatToggle');
+  const panel = document.getElementById('chatPanel');
+  const close = document.getElementById('chatClose');
+  const send = document.getElementById('chatSend');
+  const input = document.getElementById('chatInput');
+  const nameEl = document.getElementById('chatName');
+  if (nameEl) nameEl.value = localStorage.getItem('rr_chat_name') || '';
+  if (toggle && panel) {
+    toggle.addEventListener('click', () => {
+      panel.hidden = !panel.hidden;
+      if (!panel.hidden) {
+        renderChat();
+        refreshChat();
+      }
+    });
+  }
+  if (close && panel) close.addEventListener('click', () => { panel.hidden = true; });
+  if (send) send.addEventListener('click', sendChatMessage);
+  if (input) input.addEventListener('keydown', e => { if (e.key === 'Enter') sendChatMessage(); });
+  const bypass = document.getElementById('maintAdminBypass');
+  if (bypass) {
+    bypass.addEventListener('click', () => {
+      maintBypass = true;
+      applyMaintenance();
+    });
+  }
+  const maintLogin = document.getElementById('maintLoginBtn');
+  if (maintLogin) {
+    maintLogin.addEventListener('click', () => openLoginModal());
+  }
+}
+
 /* ===== COOKIE CONSENT ===== */
 const COOKIE_KEY = 'rr_cookie_consent';
 
@@ -1010,4 +1193,5 @@ isAdmin = checkAdminSession();
 setLanguage(currentLang);
 updateAdminUI();
 initData();
+initChatUI();
 initCookieBanner();
