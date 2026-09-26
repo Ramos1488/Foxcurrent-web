@@ -909,13 +909,23 @@ window.addEventListener('scroll', () => {
 const loginModal = document.getElementById('loginModal');
 
 function openLoginModal() {
-  document.getElementById('loginError').style.display = 'none';
-  document.getElementById('adminPassword').value = '';
-  loginModal.classList.add('open');
-  setTimeout(() => document.getElementById('adminPassword').focus(), 100);
+  const err = document.getElementById('loginError');
+  const pw = document.getElementById('adminPassword');
+  if (err) err.style.display = 'none';
+  if (pw) pw.value = '';
+  if (loginModal) {
+    loginModal.classList.add('open');
+    loginModal.style.display = 'flex';
+    loginModal.style.zIndex = '500';
+  }
+  setTimeout(() => { if (pw) pw.focus(); }, 100);
 }
+
 function closeLoginModal() {
-  loginModal.classList.remove('open');
+  if (loginModal) {
+    loginModal.classList.remove('open');
+    loginModal.style.display = '';
+  }
 }
 
 document.getElementById('loginModalClose').addEventListener('click', closeLoginModal);
@@ -930,6 +940,8 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
     setAdminSession(true);
     closeLoginModal();
     applyMaintenance();
+    const bypass = document.getElementById('maintAdminBypass');
+    if (bypass) bypass.style.display = '';
     toast(t('admin.welcome'));
   } else {
     document.getElementById('loginError').style.display = 'block';
@@ -1087,6 +1099,14 @@ async function sendChatMessage() {
   renderChat();
 }
 
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('#maintLoginBtn');
+  if (!btn) return;
+  e.preventDefault();
+  e.stopPropagation();
+  openLoginModal();
+}); /* maint-login-delegate */
+
 function initChatUI() {
   const toggle = document.getElementById('chatToggle');
   const panel = document.getElementById('chatPanel');
@@ -1116,7 +1136,11 @@ function initChatUI() {
   }
   const maintLogin = document.getElementById('maintLoginBtn');
   if (maintLogin) {
-    maintLogin.addEventListener('click', () => openLoginModal());
+    maintLogin.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openLoginModal();
+    });
   }
 }
 

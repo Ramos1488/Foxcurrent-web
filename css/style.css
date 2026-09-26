@@ -647,7 +647,7 @@ img { max-width: 100%; display: block; }
   inset: 0;
   background: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(6px);
-  z-index: 200;
+  z-index: 500;
   display: none;
   align-items: center;
   justify-content: center;
@@ -791,7 +791,7 @@ img { max-width: 100%; display: block; }
   padding: 12px 20px;
   border-radius: var(--radius-btn);
   font-size: 0.85rem;
-  z-index: 300;
+  z-index: 600;
   opacity: 0;
   transition: all 0.3s ease;
   pointer-events: none;
