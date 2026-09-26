@@ -45,18 +45,13 @@ function setAdminSession(ok) {
 function updateAdminUI() {
   document.body.classList.toggle('is-admin', isAdmin);
 
-  const btn = document.getElementById('adminBtn');
-  const label = document.getElementById('adminBtnLabel');
-  if (btn) {
-    btn.classList.toggle('logged-in', isAdmin);
-    if (label) label.textContent = isAdmin ? t('admin.logout') : t('admin.login');
-  }
-
   document.querySelectorAll('.admin-only').forEach(el => {
     el.style.display = isAdmin ? '' : 'none';
   });
 
-  updateMaintButton();
+  const panelBtn = document.getElementById('panelBtn');
+  if (panelBtn) panelBtn.style.display = isAdmin ? '' : 'none';
+
   applyMaintenance();
 
   renderProjects();
@@ -943,14 +938,7 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
   }
 });
 
-document.getElementById('adminBtn').addEventListener('click', () => {
-  if (isAdmin) {
-    setAdminSession(false);
-    toast(t('admin.loggedOut'));
-  } else {
-    openLoginModal();
-  }
-});
+/* admin button hidden — use Ctrl+Shift+A or logo clicks */
 
 /* ===== INIT ===== */
 document.getElementById('addGameBtn').addEventListener('click', () => {
@@ -1005,22 +993,6 @@ function applyMaintenance() {
   }
 }
 
-function updateMaintButton() {
-  let btn = document.getElementById('maintToggleBtn');
-  const actions = document.querySelector('.header-actions');
-  if (!actions) return;
-  if (!btn) {
-    btn = document.createElement('button');
-    btn.id = 'maintToggleBtn';
-    btn.className = 'admin-btn admin-only admin-maint-btn';
-    btn.style.display = isAdmin ? '' : 'none';
-    actions.insertBefore(btn, document.getElementById('adminBtn'));
-    btn.addEventListener('click', toggleMaintenance);
-  }
-  btn.style.display = isAdmin ? '' : 'none';
-  btn.textContent = siteSettings.maintenance ? t('maint.off') : t('maint.on');
-}
-
 async function toggleMaintenance() {
   if (!isAdmin) return;
   const turningOn = !siteSettings.maintenance;
@@ -1041,7 +1013,7 @@ async function toggleMaintenance() {
   }
   maintBypass = false;
   applyMaintenance();
-  updateMaintButton();
+  updatePanelMaintLabel();
   toast(turningOn ? t('maint.enabled') : t('maint.disabled'));
 }
 
@@ -1148,6 +1120,90 @@ function initChatUI() {
   }
 }
 
+
+/* ===== ADMIN PANEL + HIDDEN LOGIN ===== */
+function openAdminPanel() {
+  if (!isAdmin) return;
+  updatePanelMaintLabel();
+  const badge = document.getElementById('panelOnlineBadge');
+  const src = document.getElementById('onlineBadge');
+  if (badge && src) {
+    badge.textContent = src.textContent;
+    badge.className = src.className;
+  }
+  const el = document.getElementById('adminPanel');
+  if (el) el.classList.add('open');
+}
+
+function closeAdminPanel() {
+  const el = document.getElementById('adminPanel');
+  if (el) el.classList.remove('open');
+}
+
+function updatePanelMaintLabel() {
+  const btn = document.getElementById('panelMaintBtn');
+  if (btn) btn.textContent = siteSettings.maintenance ? t('maint.off') : t('maint.on');
+}
+
+function initAdminPanelUI() {
+  const panelBtn = document.getElementById('panelBtn');
+  if (panelBtn) panelBtn.addEventListener('click', openAdminPanel);
+  const close = document.getElementById('adminPanelClose');
+  if (close) close.addEventListener('click', closeAdminPanel);
+  const overlay = document.getElementById('adminPanel');
+  if (overlay) overlay.addEventListener('click', e => { if (e.target === overlay) closeAdminPanel(); });
+
+  const maint = document.getElementById('panelMaintBtn');
+  if (maint) maint.addEventListener('click', toggleMaintenance);
+
+  const logout = document.getElementById('panelLogout');
+  if (logout) logout.addEventListener('click', () => {
+    setAdminSession(false);
+    closeAdminPanel();
+    toast(t('admin.loggedOut'));
+  });
+
+  const clearChat = document.getElementById('panelClearChat');
+  if (clearChat) clearChat.addEventListener('click', async () => {
+    if (!confirm(currentLang === 'ru' ? 'Очистить чат?' : 'Clear all chat messages?')) return;
+    chatMessages = [];
+    try {
+      await persist('chat', chatMessages);
+    } catch (e) { return; }
+    renderChat();
+    toast(t('toast.updated'));
+  });
+
+  // Hidden login: Ctrl+Shift+A
+  document.addEventListener('keydown', e => {
+    if (e.ctrlKey && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+      e.preventDefault();
+      if (isAdmin) openAdminPanel();
+      else openLoginModal();
+    }
+  });
+
+  // Hidden login: 5 clicks on logo
+  let logoClicks = 0;
+  let logoTimer = null;
+  const logo = document.getElementById('logoBtn');
+  if (logo) {
+    logo.addEventListener('click', e => {
+      // allow normal nav, but count rapid clicks
+      logoClicks++;
+      clearTimeout(logoTimer);
+      logoTimer = setTimeout(() => { logoClicks = 0; }, 1200);
+      if (logoClicks >= 5) {
+        logoClicks = 0;
+        e.preventDefault();
+        if (isAdmin) openAdminPanel();
+        else openLoginModal();
+      }
+    });
+  }
+}
+
+
 /* ===== COOKIE CONSENT ===== */
 const COOKIE_KEY = 'rr_cookie_consent';
 
@@ -1194,4 +1250,5 @@ setLanguage(currentLang);
 updateAdminUI();
 initData();
 initChatUI();
+initAdminPanelUI();
 initCookieBanner();
